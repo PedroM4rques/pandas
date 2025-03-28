@@ -1971,8 +1971,22 @@ class HDFStore:
 
         # remove the node if we are not appending
         if group is not None and not append:
+            
             self._handle.remove_node(group, recursive=True)
+            
+            # copies, erases old file and opens new file in order to clean file size 
+            tables = _tables()
+            original_file = self._handle.filename  
+            temp_file = original_file + '.tmp'    
+            
+            self._handle.copy_file(temp_file, overwrite=True)
+            self._handle.close()  
+            
+            os.rename(temp_file, original_file)
+            self._handle = tables.open_file(original_file, mode=self._mode)
+            
             group = None
+
 
         if group is None:
             group = self._create_nodes_and_group(key)
